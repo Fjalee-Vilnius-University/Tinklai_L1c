@@ -1,3 +1,14 @@
+#include <stdio.h> 
+#include <ctype.h>
+#include <netdb.h> 
+#include <netinet/in.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <sys/socket.h> 
+#include <sys/types.h> 
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #define PORT "20000"
 #define BACKLOG 10
 #define MAXLEN 10000
@@ -25,11 +36,11 @@ void error(char *msg){
     exit(0);
 }
 
-int main(int agrc, char *argv[]){
+int main(/*int agrc, char *argv[]*/){
     struct sockaddr_storage cli_addr;
     socklen_t addr_size;
     struct addrinfo hints, *servinfo, *i;
-    int sockfd, new_fd;
+    int sockfd, new_fd, rv, yes = 1;
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET6;
@@ -78,9 +89,6 @@ int main(int agrc, char *argv[]){
     printf("\n");
     return 0;
 }
-
-
-
 
 
 
