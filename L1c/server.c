@@ -1,14 +1,3 @@
-#include <stdio.h> 
-#include <ctype.h>
-#include <netdb.h> 
-#include <netinet/in.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
-#include <arpa/inet.h>
-#include <unistd.h>
-
 #define PORT "20000"
 #define BACKLOG 10
 #define MAXLEN 10000
@@ -46,17 +35,26 @@ int main(int agrc, char *argv[]){
     hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    getaddrinfo(NULL, PORT, &hints, &servinfo);
+    if (0 != (rv = getaddrinfo(NULL, PORT, &hints, &servinfo))) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        return 1;
+    }
 
-    
-
-    for (i = servinfo; i != NULL; i = i->ai_next) {
-        sockfd = socket(i->ai_family, i->ai_socktype, i->ai_protocol);
-        if (sockfd == -1)
+    for (i = servinfo; i != NULL; i = i->ai_next){
+        if (sockfd = socket(i->ai_family, i->ai_socktype, i->ai_protocol) == -1)
             continue;
 
-        if (bind(sockfd, i->ai_addr, i->ai_addrlen) == 0)
-            break;
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
+            perror("setsockopt");
+            exit(1);
+        }
+
+        if (bind(sockfd, i->ai_addr, i->ai_addrlen) == 0){
+            close(sockfd);
+            continue;
+        }
+
+        break;
     }
     freeaddrinfo(servinfo);
     if (i == NULL)
