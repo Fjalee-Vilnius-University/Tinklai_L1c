@@ -8,10 +8,31 @@
 #include <sys/types.h> 
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #define PORT "20000"
 #define BACKLOG 10
 #define MAXLEN 10000
+
+void sigchld_handler(int s)
+{
+    int saved_errno = errno;
+
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+
+    errno = saved_errno;
+}
+
+void *get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET) {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
 
 void strToUpper(char *str){
     for (int i; i <= strlen(str); i++){
@@ -41,6 +62,8 @@ int main(/*int agrc, char *argv[]*/){
     socklen_t addr_size;
     struct addrinfo hints, *servinfo, *i;
     int sockfd, new_fd, rv, yes = 1;
+    struct sigaction sa;
+    char s[INET6_ADDRSTRLEN];
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET6;
@@ -77,15 +100,38 @@ int main(/*int agrc, char *argv[]*/){
     if (listen(sockfd, BACKLOG) == 0)
         printf("Listening...\n");
 
-    addr_size = sizeof cli_addr;
-    new_fd = accept(sockfd, (struct sockaddr *)&cli_addr, &addr_size);
-    printf("Successfully accepted...\n");
+    sa.sa_handler = sigchld_handler; // reap all dead processes
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        error("sigaction");
+        exit(1);
+    }
 
-    comm(new_fd);
+    printf("server: waiting for connections...\n");
 
-    close(sockfd);
-    close(new_fd);
-    
+    while(1){
+        addr_size = sizeof cli_addr;
+        new_fd = accept(sockfd, (struct sockaddr *)&cli_addr, &addr_size);
+        printf("Successfully accepted...\n");
+        
+        inet_ntop(cli_addr.ss_family, 
+            get_in_addr((struct sockaddr *)&cli_addr), 
+            s, sizeof s);
+        printf("server: got connection from %s\n", s);
+
+        if (!fork()){
+            close(sockfd);
+            if (-1 == send(new_fd, "Connected to the server", 13, 0))
+                error("Sending failed...");
+            close(new_fd);
+            exit(0);
+        }
+        close(new_fd);
+    }
+
+    //comm(new_fd);
+
     printf("\n");
     return 0;
 }
