@@ -57,7 +57,7 @@ void error(char *msg){
     exit(0);
 }
 
-int main(/*int agrc, char *argv[]*/){
+int main(void/*int agrc, char *argv[]*/){
     struct sockaddr_storage cli_addr;
     socklen_t addr_size;
     struct addrinfo hints, *servinfo, *i;
@@ -66,7 +66,8 @@ int main(/*int agrc, char *argv[]*/){
     char s[INET6_ADDRSTRLEN];
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET6;
+    //hints.ai_family = AF_INET6;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     if (0 != (rv = getaddrinfo(NULL, PORT, &hints, &servinfo))) {
@@ -75,7 +76,7 @@ int main(/*int agrc, char *argv[]*/){
     }
 
     for (i = servinfo; i != NULL; i = i->ai_next){
-        if (sockfd = socket(i->ai_family, i->ai_socktype, i->ai_protocol) == -1)
+        if (-1 == (sockfd = socket(i->ai_family, i->ai_socktype, i->ai_protocol)))
             continue;
 
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
@@ -83,7 +84,7 @@ int main(/*int agrc, char *argv[]*/){
             exit(1);
         }
 
-        if (bind(sockfd, i->ai_addr, i->ai_addrlen) == 0){
+        if (bind(sockfd, i->ai_addr, i->ai_addrlen) == -1){
             close(sockfd);
             continue;
         }
