@@ -19,26 +19,25 @@ void error(char *msg){
 
 void comm(int sockfd){
     char buff[MAXLEN];
-    int n, numbytes;;
+    int n, numbytes;
 
-    if ((numbytes = recv(sockfd, buff, MAXLEN-1, 0)) == -1) {
+    /*if ((numbytes = recv(sockfd, buff, MAXLEN-1, 0)) == -1) {
         error("Failed to receive...");
-    }
+    }*/
 
-    /*printf("Send: ");
+    printf("Send: ");
     bzero(buff, MAXLEN);
     while((buff[n++] = getchar()) != '\n');
 
     if (send(sockfd, buff, MAXLEN, 0) < 0)
         error("Sending failed...");
 
-    recv(sockfd, buff, MAXLEN, 0);*/
+    recv(sockfd, buff, MAXLEN, 0);
     buff[numbytes] = '\0';
     printf("Received: %s\n", buff);
 }
 
-void *get_in_addr(struct sockaddr *sa)
-{
+void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
@@ -46,7 +45,7 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(void/*int agrc, char **argv*/){
+int main(int agrc, char **argv){
     struct sockaddr_storage cli_addr;
     socklen_t addr_size;
     struct addrinfo hints, *servinfo, *i;
@@ -59,14 +58,13 @@ int main(void/*int agrc, char **argv*/){
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-
-    rv = getaddrinfo(/*argv[1]*/"127.0.0.1", PORT, &hints, &servinfo);
+    rv = getaddrinfo(argv[1]/*"127.0.0.1"*/, PORT, &hints, &servinfo);
     /*if (0 != (rv = getaddrinfo(argv[1], PORT, &hints, &servinfo))) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }*/
 
-    for (i = servinfo; i != NULL; i = i->ai_next) {
+    for (i = servinfo; i != NULL; i = i->ai_next){
         sockfd = socket(i->ai_family, i->ai_socktype, i->ai_protocol);
 
         if (sockfd == -1)
