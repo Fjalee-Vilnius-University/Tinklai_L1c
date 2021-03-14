@@ -108,7 +108,7 @@ int main(void){
 
     for(;;) {
         read_fds = master;
-        if(1 == select(fdmax+1, &read_fds, NULL, NULL, NULL)){
+        if(-1 == select(fdmax+1, &read_fds, NULL, NULL, NULL)){
             error("Failed selector...");
 
             // Run through the existing connections looking for data to read
