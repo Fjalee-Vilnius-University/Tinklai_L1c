@@ -80,6 +80,24 @@ int get_listener_socket(void)
     return listener;
 }
 
+int sendall(int s, char *buf, int *len)
+{
+    int total = 0;
+    int bytesleft = *len;
+    int n;
+
+    while(total < *len) {
+        n = send(s, buf+total, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    *len = total;
+
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+}
+
 int main(void){
     int listener;
     int new_fd;
@@ -170,9 +188,9 @@ int main(void){
                                     strcat(nameWBuff, ": ");
                                     strcat(nameWBuff, buff);
 
-                                    if (send(j, nameWBuff, strlen(nameWBuff), 0) == -1) {
+                                    if (sendall(j, nameWBuff, strlen(nameWBuff)) == -1) {
                                         error("Error sending...\n");
-                                    }
+                                    } 
                                 }
                             }
                         }

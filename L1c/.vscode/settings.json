@@ -10,6 +10,7 @@
         "netdb.h": "c",
         "in.h": "c",
         "signal.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "poll.h": "c"
     }
 }
