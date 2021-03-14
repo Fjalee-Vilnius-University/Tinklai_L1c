@@ -188,7 +188,8 @@ int main(void){
                                     strcat(nameWBuff, ": ");
                                     strcat(nameWBuff, buff);
 
-                                    if (sendall(j, nameWBuff, strlen(nameWBuff)) == -1) {
+                                    int len = strlen(nameWBuff);
+                                    if (sendall(j, nameWBuff, len) == -1) {
                                         error("Error sending...\n");
                                     } 
                                 }
