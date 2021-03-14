@@ -80,14 +80,6 @@ int get_listener_socket(void)
     return listener;
 }
 
-/*void strToUpper(char *str){
-    for (int i; i <= strlen(str); i++){
-        str[i] = toupper(str[i]);
-    }
-}*/
-
-
-
 int main(void){
     int listener;
     int new_fd;
