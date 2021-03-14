@@ -40,7 +40,7 @@ int get_listener_socket(void)
     struct addrinfo hints, *servinfo, *p;
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET6;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
@@ -135,6 +135,7 @@ int main(void){
 
                     if (new_fd == -1) 
                         error("Accepting failed ...\n");
+                        
                     else {
                         FD_SET(new_fd, &master);
                         if(new_fd > fdmax)
@@ -181,6 +182,7 @@ int main(void){
                         for(int j = 0; j <= fdmax; j++) {    // Send to everyone
                             if(FD_ISSET(j, &master)){
                                 // Except the listener
+                                char strToPrint[MAXLEN];
                                 if (j != listener) {
                                     char nameWBuff[nbytes+20];
 
@@ -189,9 +191,9 @@ int main(void){
                                     strcat(nameWBuff, buff);
 
                                     int msgLen = strlen(nameWBuff);
-                                    if (sendall(j, nameWBuff, msgLen) == -1) {
+                                    if (sendall(j, nameWBuff, &msgLen) == -1) {
                                         error("Error sending...\n");
-                                    } 
+                                    }
                                 }
                             }
                         }
@@ -202,23 +204,3 @@ int main(void){
     }
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
