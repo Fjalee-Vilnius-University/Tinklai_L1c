@@ -86,6 +86,8 @@ int get_listener_socket(void)
     }
 }*/
 
+
+
 int main(void){
     int listener;
     int new_fd;
@@ -106,56 +108,78 @@ int main(void){
     FD_SET(listener, &master);
     fdmax = listener;
 
+    char userNames[100][20];
+    int totalUsers = 0;
+
     for(;;) {
         read_fds = master;
-        if(-1 == select(fdmax+1, &read_fds, NULL, NULL, NULL)){
+        if(-1 == select(fdmax+1, &read_fds, NULL, NULL, NULL))
             error("Failed selector...");
 
-            // Run through the existing connections looking for data to read
-            for(int i = 0; i <= fdmax; i++) {
-                if(FD_ISSET(i, &read_fds)){
-                    if(i == listener){
-                        addr_size = sizeof cli_addr;
-                        new_fd = accept(listener, (struct sockaddr *)&cli_addr, &addr_size);
+        // Run through the existing connections looking for data to read
+        for(int i = 0; i <= fdmax; i++) {
+            if(FD_ISSET(i, &read_fds)){
+                if(i == listener){
+                    addr_size = sizeof cli_addr;
+                    new_fd = accept(listener, (struct sockaddr *)&cli_addr, &addr_size);
 
-                        if (new_fd == -1) 
-                            error("Acepting failed ...\n");
-                        else {
-                            FD_SET(new_fd, &master);
-                            if(new_fd > fdmax)
-                                fdmax = new_fd;
+                    if (new_fd == -1) 
+                        error("Accepting failed ...\n");
+                    else {
+                        FD_SET(new_fd, &master);
+                        if(new_fd > fdmax)
+                            fdmax = new_fd;
 
-                            printf("New connection from %s on "
-                                "socket %d\n",
-                                inet_ntop(cli_addr.ss_family,
-                                    get_in_addr((struct sockaddr*)&cli_addr),
-                                    remoteIP, INET6_ADDRSTRLEN),
-                                new_fd);
+                        if (send(new_fd, "Enter your name: ", 17, 0) == -1) {
+                            error("Error sending...\n");
                         }
+                        
+                        memset(buff, 0, strlen(buff));
+                        int nbytes = recv(new_fd, buff, sizeof buff, 0);
+
+                        int j;
+                        for(j = 0; buff[j] != '\r'; j++){
+                            userNames[new_fd][j] = buff[j];
+                        }
+                        userNames[new_fd][j] ='\0';
+
+                        // printf("New connection from %s on "
+                        //     "socket %d\n",
+                        //     inet_ntop(cli_addr.ss_family,
+                        //         get_in_addr((struct sockaddr*)&cli_addr),
+                        //         remoteIP, INET6_ADDRSTRLEN),
+                        //     new_fd);
                     }
+                }
 
-                    else {    // If not the listener, we're just a regular client
-                        int nbytes = recv(i, buff, sizeof buff, 0);
-                        int sender_fd = i;
+                else {    // If not the listener, we're just a regular client
+                    memset(buff, 0, strlen(buff));
+                    nbytes = recv(i, buff, sizeof buff, 0);
 
-                        if (nbytes <= 0) {    // Got error or connection closed by client
-                            // Connection closed
-                            if (nbytes == 0)    
-                                printf("pollserver: socket %d hung up\n", sender_fd);
-                            else 
-                                error("Error receiving...\n");
+                    if (nbytes <= 0) {    // Got error or connection closed by client
+                        // Connection closed
+                        if (nbytes == 0){
+                            printf("pollserver: socket %d hung up\n", i);
+                        }
+                        else 
+                            error("Error receiving...\n");
 
-                            close(i);
-                            FD_CLR(i, &master);
-                        } 
-                        else {
-                            for(int j = 0; j <= fdmax; j++) {    // Send to everyone
-                                if(FD_ISSET(j, &master)){
-                                    // Except the listener and ourselves
-                                    if (j != listener && j != i) {
-                                        if (send(j, buff, nbytes, 0) == -1) {
-                                            error("Error sending...\n");
-                                        }
+                        close(i);
+                        FD_CLR(i, &master);
+                    } 
+                    else {
+                        for(int j = 0; j <= fdmax; j++) {    // Send to everyone
+                            if(FD_ISSET(j, &master)){
+                                // Except the listener
+                                if (j != listener) {
+                                    char nameWBuff[nbytes+20];
+
+                                    strcpy(nameWBuff, userNames[i]);
+                                    strcat(nameWBuff, ": ");
+                                    strcat(nameWBuff, buff);
+
+                                    if (send(j, nameWBuff, strlen(nameWBuff), 0) == -1) {
+                                        error("Error sending...\n");
                                     }
                                 }
                             }

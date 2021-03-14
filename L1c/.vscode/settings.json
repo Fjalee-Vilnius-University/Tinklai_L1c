@@ -9,6 +9,7 @@
         "wait.h": "c",
         "netdb.h": "c",
         "in.h": "c",
-        "signal.h": "c"
+        "signal.h": "c",
+        "typeinfo": "c"
     }
 }
