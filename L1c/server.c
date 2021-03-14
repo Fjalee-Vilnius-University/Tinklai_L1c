@@ -95,12 +95,6 @@ int main(void){
     int nbytes;
     char remoteIP[INET6_ADDRSTRLEN];
 
-    // Start off with room for 5 connections
-    // (We'll realloc as necessary)
-    int fd_count = 0;
-    int fd_size = 5;
-    struct pollfd *pfds = malloc(sizeof *pfds * fd_size);
-
     fd_set master;
     fd_set read_fds;
     int fdmax;
@@ -141,8 +135,8 @@ int main(void){
                     }
 
                     else {    // If not the listener, we're just a regular client
-                        int nbytes = recv(pfds[i].fd, buff, sizeof buff, 0);
-                        int sender_fd = pfds[i].fd;
+                        int nbytes = recv(i, buff, sizeof buff, 0);
+                        int sender_fd = i;
 
                         if (nbytes <= 0) {    // Got error or connection closed by client
                             // Connection closed
@@ -155,7 +149,7 @@ int main(void){
                             FD_CLR(i, &master);
                         } 
                         else {
-                            for(int j = 0; j < fd_count; j++) {    // Send to everyone
+                            for(int j = 0; j <= fdmax; j++) {    // Send to everyone
                                 if(FD_ISSET(j, &master)){
                                     // Except the listener and ourselves
                                     if (j != listener && j != i) {
