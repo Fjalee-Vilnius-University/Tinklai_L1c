@@ -88,6 +88,8 @@ int sendall(int s, char *buf, int *len)
 
     while(total < *len) {
         n = send(s, buf+total, bytesleft, 0);
+
+
         if (n == -1) { break; }
         total += n;
         bytesleft -= n;
@@ -142,7 +144,7 @@ int main(void){
                         if(new_fd > fdmax)
                             fdmax = new_fd;
                                           
-                        if (send(new_fd, "ATSIUSKVARDA", 12, 0) == -1) {
+                        if (send(new_fd, "ATSIUSKVARDA\n", 13, 0) == -1) {
                             error("Error sending...\n");
                         }
                         else 
@@ -151,7 +153,7 @@ int main(void){
                         memset(buff, 0, strlen(buff));
                         int nbytes = recv(new_fd, buff, sizeof buff, 0);
 
-                        if (send(new_fd, "VARDASOK", 8, 0) == -1) {
+                        if (send(new_fd, "VARDASOK\n", 9, 0) == -1) {
                             error("Error sending...\n");
                         }
 
@@ -191,11 +193,16 @@ int main(void){
                                 // Except the listener
                                 char strToPrint[MAXLEN];
                                 if (j != listener) {
-                                    char nameWBuff[nbytes+20];
+                                    char nameWBuff[nbytes+30];
 
-                                    strcpy(nameWBuff, userNames[i]);
+                                    strcpy(nameWBuff, "PRANESIMAS");
+                                    strcat(nameWBuff, userNames[i]);
                                     strcat(nameWBuff, ": ");
                                     strcat(nameWBuff, buff);
+                                    strcat(nameWBuff, "\n");
+
+                                    // isvestis.println("PRANESIMAS" + vardas + ": " + ivesta + "\n");
+
 
                                     int msgLen = strlen(nameWBuff);
                                     if (sendall(j, nameWBuff, &msgLen) == -1) {
