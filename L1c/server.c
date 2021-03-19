@@ -158,10 +158,13 @@ int main(void){
                         }
 
                         int j;
-                        for(j = 0; buff[j] != '\r'; j++){
+                        for(j = 0; buff[j] != '\n'; j++){
                             userNames[new_fd][j] = buff[j];
                         }
-                        userNames[new_fd][j] ='\0';
+                        if ('\r' == userNames[new_fd][j-1])
+                            userNames[new_fd][j-1] ='\0';          //if last symbols \r\n make \r into \0 for strlen to work
+                        else
+                            userNames[new_fd][j] ='\0';        //else make letter after name \0 for strlen to work
 
                         // printf("New connection from %s on "
                         //     "socket %d\n",
@@ -200,9 +203,6 @@ int main(void){
                                     strcat(nameWBuff, ": ");
                                     strcat(nameWBuff, buff);
                                     strcat(nameWBuff, "\n");
-
-                                    // isvestis.println("PRANESIMAS" + vardas + ": " + ivesta + "\n");
-
 
                                     int msgLen = strlen(nameWBuff);
                                     if (sendall(j, nameWBuff, &msgLen) == -1) {
