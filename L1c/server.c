@@ -40,7 +40,7 @@ int get_listener_socket(void)
     struct addrinfo hints, *servinfo, *p;
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
+    hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
@@ -135,18 +135,25 @@ int main(void){
 
                     if (new_fd == -1) 
                         error("Accepting failed ...\n");
-                        
-                    else {
+                    else{
+                        printf("Successfully accepted a client...\n");
+
                         FD_SET(new_fd, &master);
                         if(new_fd > fdmax)
                             fdmax = new_fd;
-
-                        if (send(new_fd, "Enter your name: ", 17, 0) == -1) {
+                                          
+                        if (send(new_fd, "ATSIUSKVARDA", 12, 0) == -1) {
                             error("Error sending...\n");
                         }
+                        else 
+                            printf("successfully asked for name...\n");
                         
                         memset(buff, 0, strlen(buff));
                         int nbytes = recv(new_fd, buff, sizeof buff, 0);
+
+                        if (send(new_fd, "VARDASOK", 8, 0) == -1) {
+                            error("Error sending...\n");
+                        }
 
                         int j;
                         for(j = 0; buff[j] != '\r'; j++){
