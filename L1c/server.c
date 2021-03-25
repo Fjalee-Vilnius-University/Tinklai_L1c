@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <poll.h>
+#include <assert.h>
 
 #define PORT "20000"
 #define BACKLOG 10
@@ -98,6 +99,19 @@ int sendall(int s, char *buf, int *len)
     *len = total;
 
     return n==-1?-1:0; // return -1 on failure, 0 on success
+}
+
+void receivedPM(char *buff, char *nickname, char *message){
+    const char delimiter[2] = " ";
+    char command[MAXLEN];
+    strcpy(command, buff);
+    strtok(command, delimiter);
+
+    int buffLen;
+    for(buffLen = 1; buff[buffLen] != '\n'; buffLen++);
+    
+    memmove(message, buff+strlen(command)+1, buffLen-strlen(command));
+    memmove(nickname, command+1, strlen(command));
 }
 
 int main(void){
@@ -189,7 +203,13 @@ int main(void){
 
                         close(i);
                         FD_CLR(i, &master);
-                    } 
+                    }
+                    else if ('/' == buff[0]) {
+                        char message[MAXLEN], nickname[MAXLEN];
+                        receivedPM(buff, nickname, message);
+                        
+                        printf("\nnick - %s\nmess - %s\n", nickname, message);
+                    }
                     else {
                         for(int j = 0; j <= fdmax; j++) {    // Send to everyone
                             if(FD_ISSET(j, &master)){
