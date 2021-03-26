@@ -113,10 +113,6 @@ void receivedPM(char *buff, char *nickname, char *message){
     memmove(nickname, command+1, strlen(command));
 }
 
-void sendPM(char *message, char *nickname, char *usernames, int totalUsers){
-    
-}
-
 void prepMsgForSend(char *msg, char *msgForSend, char *username){
     strcpy(msgForSend, "PRANESIMAS");
     strcat(msgForSend, username);
