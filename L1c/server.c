@@ -224,13 +224,13 @@ int main(void){
                         printf("PM to nick - %s\n%s\n", nickname, message);
 
                         int x = 0;
-                        while (0 != strcmp(nickname, userNames[x]) && (fdmax+1)){
+                        while (0 != strcmp(nickname, userNames[x]) && (fdmax+1) > x){
                             x++;
                         }
-                        if ((fdmax+1) < x){
+                        if ((fdmax) < x){
                             char dnExistMsg[60];
                             strcpy(dnExistMsg, nickname);
-                            strcat(dnExistMsg, " nickname doesn't exist.");
+                            strcat(dnExistMsg, " nickname doesn't exist.\n");
 
                             if (-1 == send(i, dnExistMsg, strlen(dnExistMsg), 0)){
                                 error("Sending error message for non-existent user failed...");
