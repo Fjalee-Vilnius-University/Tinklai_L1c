@@ -147,6 +147,19 @@ int main(void){
     char userNames[100][20];
     int totalUsers = 0;
 
+    char quotes[100][MAXLEN];
+    int totalQuotes = 0;
+    char *line;
+    size_t len = 0;
+    FILE *quetesFile = fopen("quotes.txt", "r");
+    if (NULL != quetesFile){
+        while (getline(&line, &len, quetesFile) != -1) {
+            totalQuotes++;
+            strcpy(quotes[totalQuotes], line);
+        }
+    }
+
+
     for(;;) {
         read_fds = master;
         if(-1 == select(fdmax+1, &read_fds, NULL, NULL, NULL))
@@ -219,7 +232,7 @@ int main(void){
                     else if ('/' == buff[0]) {
                         char message[MAXLEN], nickname[MAXLEN];
                         receivedPM(buff, nickname, message);
-                        
+
                         printf("PM to nick - %s\n%s\n", nickname, message);
 
                         int x = 0;
@@ -238,6 +251,13 @@ int main(void){
                         else{
                             char nameWBuff[nbytes+30];
 
+                            int quoteId;
+                            if (0 != (quoteId = atoi(message))){
+                                if (quoteId <= totalQuotes){
+                                    strcpy(message, quotes[quoteId]);
+                                }
+                            }
+
                             prepMsgForSend(message, nameWBuff, userNames[i]);
 
                             int msgLen = strlen(nameWBuff);
@@ -245,8 +265,6 @@ int main(void){
                                 error("Error sending...\n");
                             }
                         }
-
-                        //sendPM(message, nickname, userNames, totalUsers);
                     }
 
 
