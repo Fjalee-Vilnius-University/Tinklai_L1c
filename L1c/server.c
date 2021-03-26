@@ -227,8 +227,8 @@ int main(void){
                             x++;
                         }
                         if ((fdmax) < x){
-                            char dnExistMsg[60];
-                            strcpy(dnExistMsg, nickname);
+                            char dnExistMsg[60] = "PRANESIMAS";
+                            strcat(dnExistMsg, nickname);
                             strcat(dnExistMsg, " nickname doesn't exist.\n");
 
                             if (-1 == send(i, dnExistMsg, strlen(dnExistMsg), 0)){
