@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <poll.h>
+#include <assert.h>
 
 #define PORT "20000"
 #define BACKLOG 10
@@ -89,7 +90,6 @@ int sendall(int s, char *buf, int *len)
     while(total < *len) {
         n = send(s, buf+total, bytesleft, 0);
 
-
         if (n == -1) { break; }
         total += n;
         bytesleft -= n;
@@ -98,6 +98,31 @@ int sendall(int s, char *buf, int *len)
     *len = total;
 
     return n==-1?-1:0; // return -1 on failure, 0 on success
+}
+
+void receivedPM(char *buff, char *nickname, char *message){
+    const char delimiter[2] = " ";
+    char command[MAXLEN];
+    strcpy(command, buff);
+    strtok(command, delimiter);
+
+    int buffLen;
+    for(buffLen = 1; buff[buffLen] != '\n'; buffLen++);
+    
+    memmove(message, buff+strlen(command)+1, buffLen-strlen(command));
+    memmove(nickname, command+1, strlen(command));
+}
+
+void sendPM(char *message, char *nickname, char *usernames, int totalUsers){
+    
+}
+
+prepMsgForSend(char *msg, char *msgForSend, char *username){
+    strcpy(msgForSend, "PRANESIMAS");
+    strcat(msgForSend, username);
+    strcat(msgForSend, ": ");
+    strcat(msgForSend, msg);
+    strcat(msgForSend, "\n");
 }
 
 int main(void){
@@ -166,6 +191,7 @@ int main(void){
                         else
                             userNames[new_fd][j] ='\0';        //else make letter after name \0 for strlen to work
 
+                        totalUsers++;
                         // printf("New connection from %s on "
                         //     "socket %d\n",
                         //     inet_ntop(cli_addr.ss_family,
@@ -180,6 +206,7 @@ int main(void){
                     nbytes = recv(i, buff, sizeof buff, 0);
 
                     if (nbytes <= 0) {    // Got error or connection closed by client
+                        totalUsers--;
                         // Connection closed
                         if (nbytes == 0){
                             printf("pollserver: socket %d hung up\n", i);
@@ -189,7 +216,41 @@ int main(void){
 
                         close(i);
                         FD_CLR(i, &master);
-                    } 
+                    }
+                    else if ('/' == buff[0]) {
+                        char message[MAXLEN], nickname[MAXLEN];
+                        receivedPM(buff, nickname, message);
+                        
+                        printf("PM to nick - %s\n%s\n", nickname, message);
+
+                        int x = 0;
+                        while (0 != strcmp(nickname, userNames[x]) && (fdmax+1)){
+                            x++;
+                        }
+                        if ((fdmax+1) < x){
+                            char dnExistMsg[60];
+                            strcpy(dnExistMsg, nickname);
+                            strcat(dnExistMsg, " nickname doesn't exist.");
+
+                            if (-1 == send(i, dnExistMsg, strlen(dnExistMsg), 0)){
+                                error("Sending error message for non-existent user failed...");
+                            }
+                        }
+                        else{
+                            char nameWBuff[nbytes+30];
+
+                            prepMsgForSend(message, nameWBuff, userNames[i]);
+
+                            int msgLen = strlen(nameWBuff);
+                            if (sendall(x, nameWBuff, &msgLen) == -1) {
+                                error("Error sending...\n");
+                            }
+                        }
+
+                        //sendPM(message, nickname, userNames, totalUsers);
+                    }
+
+
                     else {
                         for(int j = 0; j <= fdmax; j++) {    // Send to everyone
                             if(FD_ISSET(j, &master)){
@@ -198,11 +259,7 @@ int main(void){
                                 if (j != listener) {
                                     char nameWBuff[nbytes+30];
 
-                                    strcpy(nameWBuff, "PRANESIMAS");
-                                    strcat(nameWBuff, userNames[i]);
-                                    strcat(nameWBuff, ": ");
-                                    strcat(nameWBuff, buff);
-                                    strcat(nameWBuff, "\n");
+                                    prepMsgForSend(buff, nameWBuff, userNames[i]);
 
                                     int msgLen = strlen(nameWBuff);
                                     if (sendall(j, nameWBuff, &msgLen) == -1) {
