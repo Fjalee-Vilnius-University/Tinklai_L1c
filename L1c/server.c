@@ -109,8 +109,11 @@ void receivedPM(char *buff, char *nickname, char *message){
     int buffLen;
     for(buffLen = 1; buff[buffLen] != '\n'; buffLen++);
     
-    memmove(message, buff+strlen(command)+1, buffLen-strlen(command));
+    int messageLen = buffLen-strlen(command);
+    memmove(message, buff+strlen(command)+1, messageLen);
+    message[messageLen] = '\0';
     memmove(nickname, command+1, strlen(command));
+    nickname[strlen(command)] = '\0';
 }
 
 void prepMsgForSend(char *msg, char *msgForSend, char *username){
