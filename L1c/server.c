@@ -117,7 +117,7 @@ void sendPM(char *message, char *nickname, char *usernames, int totalUsers){
     
 }
 
-prepMsgForSend(char *msg, char *msgForSend, char *username){
+void prepMsgForSend(char *msg, char *msgForSend, char *username){
     strcpy(msgForSend, "PRANESIMAS");
     strcat(msgForSend, username);
     strcat(msgForSend, ": ");
